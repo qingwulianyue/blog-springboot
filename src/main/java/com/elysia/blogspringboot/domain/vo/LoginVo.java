@@ -11,6 +11,4 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LoginVo {
     private Long id;
-    private String tokenName;
-    private String token;
 }

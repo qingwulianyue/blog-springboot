@@ -5,6 +5,7 @@ import com.elysia.blogspringboot.enumeration.JwtClaimsEnum;
 import com.elysia.blogspringboot.properties.JwtProperties;
 import com.elysia.blogspringboot.untils.JwtUtils;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,18 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
             //当前拦截到的不是动态方法，直接放行
             return true;
         }
-        //从请求头中获取令牌
-        String token = request.getHeader(jwtProperties.getUserTokenName());
+        //从Cookie中获取令牌
+        String token = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                //匹配存储JWT的Cookie名称
+                if (jwtProperties.getUserTokenName().equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
         //校验令牌
         try {
             log.info("jwt校验:{}", token);

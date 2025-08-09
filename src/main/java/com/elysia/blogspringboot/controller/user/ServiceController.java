@@ -33,6 +33,7 @@ public class ServiceController {
 
     @GetMapping("/download/{fileName}")
     public void download(@PathVariable String fileName, HttpServletResponse response, HttpServletRequest request) {
+
         log.info("下载文件请求: {}", fileName);
         try {
             // 安全检查：防止路径遍历攻击

@@ -10,6 +10,8 @@ import com.elysia.blogspringboot.result.Result;
 import com.elysia.blogspringboot.service.IUserProfileService;
 import com.elysia.blogspringboot.service.IUserService;
 import com.elysia.blogspringboot.untils.JwtUtils;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +38,7 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
     }
 
     @Override
-    public Result checkUserLogin(User user) {
+    public Result checkUserLogin(User user, HttpServletResponse response) {
         if (!lambdaQuery().eq(User::getUsername, user.getUsername()).exists()) {
             return Result.error("用户名不存在");
         }
@@ -47,10 +49,16 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
         Map<String, Object> claims = new HashMap<>();
         claims.put(JwtClaimsEnum.USER_ID.getValue(), userSave.getId());
         String jwt = JwtUtils.createJWT(jwtProperties.getUserSecretKey(), jwtProperties.getUserTtl(), claims);
+        // 创建Cookie对象（使用标准Cookie类）
+        Cookie jwtCookie = new Cookie(jwtProperties.getUserTokenName(), jwt);
+        // 设置Cookie属性
+        jwtCookie.setHttpOnly(true);  // 禁止JS访问
+        jwtCookie.setPath("/");       // 全站有效
+        jwtCookie.setMaxAge(7200000);    // 有效期（秒）
+        // 添加到响应
+        response.addCookie(jwtCookie);
         LoginVo loginVo = LoginVo.builder()
                 .id(userSave.getId())
-                .tokenName(jwtProperties.getUserTokenName())
-                .token(jwt)
                 .build();
         return Result.success(loginVo);
     }

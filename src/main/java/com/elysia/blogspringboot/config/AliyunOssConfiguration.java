@@ -19,6 +19,8 @@ public class AliyunOssConfiguration{
     @ConditionalOnMissingBean
     public AliyunOssUtils aliOssUtil(AliyunOssProperties aliyunOssProperties) {
         log.info("开始创建阿里云文件上传工具类对象：{}", aliyunOssProperties);
+        log.info("获取AccessKeyId：{}", aliyunOssProperties.getAccessKeyId());
+        log.info("获取AccessKeySecret：{}", aliyunOssProperties.getAccessKeySecret());
         return new AliyunOssUtils(aliyunOssProperties.getEndpoint(),
                 aliyunOssProperties.getAccessKeyId(),
                 aliyunOssProperties.getAccessKeySecret(),
