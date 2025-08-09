@@ -2,7 +2,6 @@ package com.elysia.blogspringboot.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.elysia.blogspringboot.domain.entity.User;
-import com.elysia.blogspringboot.domain.vo.LoginVo;
 import com.elysia.blogspringboot.enumeration.JwtClaimsEnum;
 import com.elysia.blogspringboot.mapper.UserMapper;
 import com.elysia.blogspringboot.properties.JwtProperties;
@@ -38,7 +37,7 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
     }
 
     @Override
-    public Result checkUserLogin(User user, HttpServletResponse response) {
+    public Result<String> checkUserLogin(User user, HttpServletResponse response) {
         if (!lambdaQuery().eq(User::getUsername, user.getUsername()).exists()) {
             return Result.error("用户名不存在");
         }
@@ -57,10 +56,7 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
         jwtCookie.setMaxAge(7200000);    // 有效期（秒）
         // 添加到响应
         response.addCookie(jwtCookie);
-        LoginVo loginVo = LoginVo.builder()
-                .id(userSave.getId())
-                .build();
-        return Result.success(loginVo);
+        return Result.success();
     }
 
     @Override
