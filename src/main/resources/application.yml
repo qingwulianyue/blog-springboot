@@ -9,15 +9,19 @@ spring:
   jwt:
     admin-secret-key: elysiaAdmin
     # 设置jwt过期时间
-    admin-ttl: 7200000
+    admin-ttl: 86400
     # 设置前端传递过来的令牌名称
     admin-token-name: elysiaAdminToken
     # 设置jwt签名加密时使用的秘钥
     user-secret-key: elysiaUser
     # 设置jwt过期时间
-    user-ttl: 7200000
+    user-ttl: 86400
     # 设置前端传递过来的令牌名称
     user-token-name: elysiaUserToken
+  data:
+    redis:
+      host: localhost
+      port: 6379
 aliyun:
   oss:
     endpoint: oss-cn-guangzhou.aliyuncs.com

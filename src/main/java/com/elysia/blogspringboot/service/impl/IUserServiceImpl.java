@@ -12,6 +12,7 @@ import com.elysia.blogspringboot.untils.JwtUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
     private final JwtProperties jwtProperties;
     private final IUserProfileService userProfileService;
+    private final RedisTemplate<String, String> redisTemplate;
     @Override
     public Result<String> checkUsername(String username) {
         if (lambdaQuery().eq(User::getUsername, username).exists())
@@ -37,14 +39,12 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
     }
 
     @Override
-    public Result<String> checkUserLogin(User user, HttpServletResponse response) {
-        if (!lambdaQuery().eq(User::getUsername, user.getUsername()).exists()) {
+    public Result<String> login(User user, HttpServletResponse response) {
+        if (!lambdaQuery().eq(User::getUsername, user.getUsername()).exists())
             return Result.error("用户名不存在");
-        }
-        if (!lambdaQuery().eq(User::getPassword, user.getPassword()).exists()) {
-            return Result.error("密码错误");
-        }
         User userSave = lambdaQuery().eq(User::getUsername, user.getUsername()).one();
+        if (!userSave.getPassword().equals(user.getPassword()))
+            return Result.error("密码错误");
         Map<String, Object> claims = new HashMap<>();
         claims.put(JwtClaimsEnum.USER_ID.getValue(), userSave.getId());
         String jwt = JwtUtils.createJWT(jwtProperties.getUserSecretKey(), jwtProperties.getUserTtl(), claims);
@@ -53,7 +53,7 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
         // 设置Cookie属性
         jwtCookie.setHttpOnly(true);  // 禁止JS访问
         jwtCookie.setPath("/");       // 全站有效
-        jwtCookie.setMaxAge(7200000);    // 有效期（秒）
+        jwtCookie.setMaxAge(86400);    // 有效期（秒）
         // 添加到响应
         response.addCookie(jwtCookie);
         return Result.success();

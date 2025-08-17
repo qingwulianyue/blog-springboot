@@ -10,16 +10,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class JwtTokenUserInterceptor implements HandlerInterceptor {
     private final JwtProperties jwtProperties;
+    private final RedisTemplate<String, String> redisTemplate;
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         BaseContext.removeCurrentId();
@@ -45,11 +49,21 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
         //校验令牌
         try {
             log.info("jwt校验:{}", token);
+            // 解析令牌并判断是否过期
             Claims claims = JwtUtils.parseJWT(jwtProperties.getUserSecretKey(), token);
             Long id = Long.valueOf(claims.get(JwtClaimsEnum.USER_ID.getValue()).toString());
+            // 检查该用户令牌是否存在于黑名单
+            String key = "user:blacklist:" + token;
+            if (redisTemplate.hasKey(key)) {
+                log.warn("用户令牌已存在黑名单中:{}", key);
+                response.setStatus(444);
+                return false;
+            }
             BaseContext.setCurrentId(id);
             return true;
-        } catch (Exception ex) {
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            // 令牌过期
+            log.warn("JWT令牌已过期:{}", e.getMessage());
             response.setStatus(444);
             return false;
         }

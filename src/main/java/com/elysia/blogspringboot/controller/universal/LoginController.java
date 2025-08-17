@@ -20,6 +20,6 @@ public class LoginController {
     @PostMapping
     public Result<String> login(@RequestBody User user, HttpServletResponse  response) {
         log.info("用户登录：{}",user);
-        return userService.checkUserLogin(user, response);
+        return userService.login(user, response);
     }
 }

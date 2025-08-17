@@ -8,6 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public interface IUserService extends IService<User> {
     Result<String> checkUsername(String username);
     Result<String> checkEmail(String email);
-    Result<String> checkUserLogin(User user, HttpServletResponse response);
+    Result<String> login(User user, HttpServletResponse response);
     Result<String> checkUserRegister(User user);
 }
